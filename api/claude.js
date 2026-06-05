@@ -3,18 +3,12 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-api-key');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
 
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
 
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method Not Allowed' });
-  }
-
-  const apiKey = req.headers['x-api-key'];
-  if (!apiKey) {
-    return res.status(400).json({ error: 'API Key가 없습니다.' });
-  }
+  // 환경변수 API Key 우선, 없으면 헤더에서 받기
+  const apiKey = process.env.ANTHROPIC_API_KEY || req.headers['x-api-key'];
+  if (!apiKey) return res.status(400).json({ error: 'API Key가 없습니다.' });
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -26,10 +20,8 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify(req.body)
     });
-
     const data = await response.json();
     return res.status(response.status).json(data);
-
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
