@@ -350,21 +350,28 @@ select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%
           <div class="results-header">
             <span class="results-label">제안 문구</span>
             <span class="results-meta" id="resultsMeta"></span>
+            <button onclick="openCommonChat()" id="chatToggleBtn" style="margin-left:8px;padding:5px 14px;background:var(--brand-light);color:var(--brand-mid);border:1.5px solid var(--brand-bright);border-radius:99px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;">💬 수정 요청</button>
           </div>
           <div id="resultsList"></div>
 
-          <!-- 대화형 수정 -->
-          <div class="chat-panel" id="chatPanel">
-            <div class="chat-head">
-              💬 <span id="chatLabel">수정 요청</span>
-              <button onclick="closeChat()" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--text-tertiary);font-size:20px;line-height:1;">×</button>
+          <!-- 공통 수정 요청 채팅 -->
+          <div id="commonChat" style="display:none;margin-top:16px;">
+            <div style="background:var(--brand-light);border-radius:var(--r-lg) var(--r-lg) 0 0;padding:12px 16px;display:flex;align-items:center;gap:8px;border:1.5px solid var(--brand-bright);border-bottom:none;">
+              <span style="font-size:14px;">💬</span>
+              <span style="font-size:13px;font-weight:700;color:var(--brand-mid);">수정 요청</span>
+              <span style="font-size:11px;color:var(--text-tertiary);margin-left:4px;">특정 안 또는 전체를 수정할 수 있어요</span>
+              <button onclick="closeCommonChat()" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--text-tertiary);font-size:20px;line-height:1;">×</button>
             </div>
-            <div class="chat-messages" id="chatMessages"></div>
-            <div class="chat-input-row">
-              <textarea class="chat-input" id="chatInput" rows="2"
-                placeholder="수정 방향을 입력해 주세요&#10;예: 더 짧게 / 타이틀을 명사형으로 / 결과를 더 강조해 주세요"
-                onkeydown="handleChatKey(event)"></textarea>
-              <button class="btn-send" id="sendBtn" onclick="sendChat()">전송</button>
+            <div style="border:1.5px solid var(--brand-bright);border-top:none;border-radius:0 0 var(--r-lg) var(--r-lg);background:white;overflow:hidden;">
+              <div id="commonChatMessages" style="padding:16px;display:flex;flex-direction:column;gap:10px;max-height:320px;overflow-y:auto;"></div>
+              <div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;">
+                <textarea id="commonChatInput" rows="2" style="flex:1;padding:10px 13px;border:1.5px solid var(--border);border-radius:var(--r-md);font-family:var(--sans);font-size:13px;outline:none;resize:none;transition:border-color .15s;" 
+                  placeholder="수정 방향을 입력해 주세요&#10;예: &quot;1안을 더 짧게&quot; / &quot;3안에서 해당 표현 빼줘&quot; / &quot;전체를 컨펌 구조로 바꿔줘&quot;"
+                  onkeydown="handleCommonChatKey(event)"
+                  onfocus="this.style.borderColor='var(--brand-bright)'"
+                  onblur="this.style.borderColor='var(--border)'"></textarea>
+                <button id="commonSendBtn" onclick="sendCommonChat()" style="padding:10px 20px;background:var(--brand-bright);color:white;border:none;border-radius:var(--r-md);cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:700;transition:background .15s;align-self:flex-end;">전송</button>
+              </div>
             </div>
           </div>
         </div>
@@ -544,24 +551,21 @@ let isGenerated = false;
 
 // ── API KEY ───────────────────────────────────
 async function checkApiKey() {
-  // 서버에 환경변수 API Key 있는지 먼저 확인
   try {
-    const testRes = await fetch('/api/claude', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1, messages: [{ role: 'user', content: 'hi' }] })
-    });
-    // 400이 아닌 응답이면 서버 키 있음
-    if (testRes.status !== 400) {
-      document.getElementById('apiBanner').style.display = 'none';
-      document.getElementById('apiStatus').classList.add('connected');
-      document.getElementById('apiStatus').querySelector('span').textContent = 'Claude 연결됨';
-      window._useServerKey = true;
-      return;
+    // 서버 환경변수 키 확인 - /api/check-key 엔드포인트
+    const testRes = await fetch('/api/check-key');
+    if (testRes.ok) {
+      const data = await testRes.json();
+      if (data.hasKey) {
+        document.getElementById('apiBanner').style.display = 'none';
+        document.getElementById('apiStatus').classList.add('connected');
+        window._useServerKey = true;
+        return;
+      }
     }
   } catch(e) {}
 
-  // 로컬 키 확인
+  // 로컬 저장 키 확인
   const key = localStorage.getItem('daou_ux_api_key');
   if (key) {
     document.getElementById('apiBanner').style.display = 'none';
@@ -624,7 +628,7 @@ async function generate() {
   switchToSplitLayout();
   document.getElementById('loadingState').style.display = 'block';
   document.getElementById('resultsState').style.display = 'none';
-  document.getElementById('chatPanel').classList.remove('show');
+  document.getElementById('commonChat').style.display = 'none';
   document.getElementById('generateBtn').disabled = true;
 
   const userPrompt = `문구 목적: ${purpose}
@@ -673,7 +677,6 @@ function renderResults() {
             ? `<button class="btn-adopt done">✅ 채택됨</button>`
             : `<button class="btn-adopt" onclick="adopt(${i})">✅ 채택</button>`
           }
-          <button class="btn-refine" onclick="openChat(${i})">💬 수정 요청</button>
           <button class="btn-copy" onclick="copyText(${i})">📋 복사</button>
         </div>
       </div>
@@ -708,29 +711,41 @@ function copyText(i) {
 }
 
 // ── CHAT ─────────────────────────────────────
-function openChat(i) {
-  chatIdx = i;
-  chatHistory = [{ role: 'user', content: `기존 문구:\n${suggestions[i].text}\n\n이 문구를 수정해 주세요.` }];
-  document.getElementById('chatLabel').textContent = `${suggestions[i].label} 기반 수정 요청`;
-  document.getElementById('chatMessages').innerHTML =
-    `<div class="msg msg-ai">${suggestions[i].label}을 기반으로 수정해 드릴게요.\n어떻게 바꾸고 싶으신가요?\n예: "더 짧게" / "타이틀을 더 명확하게" / "결과를 더 강조해 주세요"</div>`;
-  document.getElementById('chatPanel').classList.add('show');
-  document.getElementById('chatPanel').scrollIntoView({behavior:'smooth',block:'nearest'});
+// ── 공통 채팅 ─────────────────────────────────
+let commonChatHistory = [];
+
+function openCommonChat() {
+  const chat = document.getElementById('commonChat');
+  chat.style.display = 'block';
+  const msgs = document.getElementById('commonChatMessages');
+  if (!msgs.innerHTML) {
+    const suggList = suggestions.map((s,i) => `${s.label}: ${s.text.split('\n')[0]}`).join('\n');
+    msgs.innerHTML = `<div class="msg msg-ai">안녕하세요! 현재 제안된 문구를 수정해 드릴게요.\n\n💡 이렇게 요청해 보세요:\n• "1안을 더 짧게 바꿔줘"\n• "3안에서 '해당' 표현 빼줘"\n• "전체를 토스트 형식으로 바꿔줘"\n• "2안이랑 4안 합쳐줘"</div>`;
+    commonChatHistory = [{
+      role: 'user',
+      content: `현재 제안된 문구 목록:\n${suggestions.map((s,i) => `[${s.label}] ${s.text}`).join('\n\n')}`
+    }];
+  }
+  chat.scrollIntoView({behavior:'smooth', block:'nearest'});
+  document.getElementById('commonChatInput').focus();
 }
 
-function closeChat() { document.getElementById('chatPanel').classList.remove('show'); }
-
-function handleChatKey(e) {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
+function closeCommonChat() {
+  document.getElementById('commonChat').style.display = 'none';
 }
 
-async function sendChat() {
-  const input = document.getElementById('chatInput').value.trim();
+function handleCommonChatKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendCommonChat(); }
+}
+
+async function sendCommonChat() {
+  const input = document.getElementById('commonChatInput').value.trim();
   if (!input) return;
-  const msgs = document.getElementById('chatMessages');
+
+  const msgs = document.getElementById('commonChatMessages');
   msgs.innerHTML += `<div class="msg msg-user">${input}</div>`;
-  document.getElementById('chatInput').value = '';
-  document.getElementById('sendBtn').disabled = true;
+  document.getElementById('commonChatInput').value = '';
+  document.getElementById('commonSendBtn').disabled = true;
 
   const loading = document.createElement('div');
   loading.className = 'msg msg-ai';
@@ -738,27 +753,102 @@ async function sendChat() {
   msgs.appendChild(loading);
   msgs.scrollTop = msgs.scrollHeight;
 
-  chatHistory.push({ role: 'user', content: input });
+  commonChatHistory.push({ role: 'user', content: input });
 
-  const chatSystem = SYSTEM_PROMPT + `\n\n## 수정 요청 모드
-사용자의 요청에 따라 문구를 개선해 주세요.
-JSON 형식으로만 응답: {"revisedText": "수정된 문구", "changeNote": "변경 내용 한 줄 요약"}`;
+  const chatSystem = SYSTEM_PROMPT + \`
+
+## 수정 요청 모드
+사용자의 요청에 따라 특정 안 또는 전체를 수정해 주세요.
+- "N안을 ~" → 해당 안만 수정
+- "전체를 ~" → 모든 안 수정
+- 대상 미명시 → 문맥에 맞게 판단
+
+JSON 형식으로만 응답:
+{
+  "message": "수정 내용 설명 (1~2문장)",
+  "updates": [
+    { "index": 0, "label": "1안", "text": "수정된 문구", "charCount": 글자수 }
+  ]
+}
+updates에는 수정된 안만 포함. index는 0부터 시작.
+JSON 외 다른 텍스트 절대 금지.\`;
 
   try {
-    const raw = await AI_PROVIDER.call(chatSystem, chatHistory);
-    const json = JSON.parse(raw.replace(/```json|```/g, '').trim());
-    loading.innerHTML = `<strong>수정됐습니다!</strong>\n${fmt(json.revisedText)}\n\n<span style="font-size:11px;color:var(--text-tertiary);">📝 ${json.changeNote}</span>`;
-    chatHistory.push({ role: 'assistant', content: json.revisedText });
-    suggestions[chatIdx].text = json.revisedText;
-    suggestions[chatIdx].charCount = json.revisedText.length;
-    renderResults();
+    const raw = await AI_PROVIDER.call(chatSystem, commonChatHistory);
+    const json = JSON.parse(raw.replace(/\`\`\`json|\`\`\`/g, '').trim());
+
+    // 수정된 안들 업데이트
+    if (json.updates && json.updates.length > 0) {
+      json.updates.forEach(u => {
+        if (u.index >= 0 && u.index < suggestions.length) {
+          suggestions[u.index].text = u.text;
+          suggestions[u.index].charCount = u.charCount || u.text.length;
+        }
+      });
+      renderResults();
+    }
+
+    // 채팅 응답 표시
+    const updatedLabels = json.updates ? json.updates.map(u => u.label).join(', ') : '';
+    loading.innerHTML = \`
+      <div style="margin-bottom:8px;">\${json.message || '수정됐습니다.'}</div>
+      \${json.updates ? json.updates.map(u => \`
+        <div style="margin-bottom:8px;">
+          <div style="font-size:11px;font-weight:700;color:var(--brand-mid);margin-bottom:4px;">\${u.label}</div>
+          <div style="background:white;padding:8px 12px;border-radius:6px;border-left:3px solid var(--green);font-size:12px;white-space:pre-wrap;">\${fmt(u.text)}</div>
+          <div style="display:flex;gap:6px;margin-top:6px;">
+            <button onclick="adoptUpdated(\${u.index})" style="padding:4px 12px;background:var(--green);color:white;border:none;border-radius:6px;cursor:pointer;font-size:11px;font-weight:700;">✅ 채택</button>
+            <button onclick="copyUpdated(\${u.index})" style="padding:4px 12px;background:var(--surface2);color:var(--text-secondary);border:none;border-radius:6px;cursor:pointer;font-size:11px;">📋 복사</button>
+          </div>
+        </div>
+      \`).join('') : ''}
+    \`;
+
+    commonChatHistory.push({ role: 'assistant', content: json.message + ' ' + (json.updates || []).map(u => u.label + ': ' + u.text).join(' / ') });
+
   } catch(e) {
     loading.textContent = '수정 중 오류가 발생했습니다. 다시 시도해 주세요.';
+    console.error(e);
   } finally {
-    document.getElementById('sendBtn').disabled = false;
+    document.getElementById('commonSendBtn').disabled = false;
     msgs.scrollTop = msgs.scrollHeight;
   }
 }
+
+function adoptUpdated(idx) {
+  adoptedIdx = idx;
+  const hist = JSON.parse(localStorage.getItem('daou_ux_history') || '[]');
+  hist.unshift({
+    id: Date.now(),
+    purpose: document.getElementById('purpose').value.trim(),
+    uiType: document.getElementById('uiType').value,
+    msgType: document.getElementById('msgType').value,
+    text: suggestions[idx].text,
+    date: new Date().toLocaleDateString('ko-KR',{month:'long',day:'numeric'})
+  });
+  localStorage.setItem('daou_ux_history', JSON.stringify(hist));
+  renderResults();
+  toast('✅ 채택됐습니다! 히스토리에 저장됐어요.');
+}
+
+function copyUpdated(idx) {
+  navigator.clipboard.writeText(suggestions[idx].text).then(() => toast('📋 복사됐습니다.'));
+}
+
+// 기존 호환성 유지
+function openChat(i) { openCommonChat(); }
+function closeChat() { closeCommonChat(); }
+function handleChatKey(e) { handleCommonChatKey(e); }
+
+
+
+
+
+function handleChatKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
+}
+
+
 
 // ── RESET ─────────────────────────────────────
 function resetForm() {
@@ -771,7 +861,7 @@ function resetForm() {
   document.getElementById('uiHint').innerHTML = '';
   document.getElementById('loadingState').style.display = 'none';
   document.getElementById('resultsState').style.display = 'none';
-  document.getElementById('chatPanel').classList.remove('show');
+  document.getElementById('commonChat').style.display = 'none';
   switchToFullLayout();
   suggestions = []; adoptedIdx = -1;
 }
