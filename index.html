@@ -798,13 +798,13 @@ async function sendCommonChat() {
 
   commonChatHistory.push({ role: 'user', content: input });
 
-  const chatSystem = SYSTEM_PROMPT + \`
+  const chatSystem = SYSTEM_PROMPT + `
 
 ## 수정 요청 모드
 사용자의 요청에 따라 특정 안 또는 전체를 수정해 주세요.
-- "N안을 ~" → 해당 안만 수정
-- "전체를 ~" → 모든 안 수정
-- 대상 미명시 → 문맥에 맞게 판단
+- "N안을 ~" 형식이면 해당 안만 수정
+- "전체를 ~" 형식이면 모든 안 수정
+- 대상 미명시면 문맥에 맞게 판단
 
 JSON 형식으로만 응답:
 {
@@ -814,11 +814,11 @@ JSON 형식으로만 응답:
   ]
 }
 updates에는 수정된 안만 포함. index는 0부터 시작.
-JSON 외 다른 텍스트 절대 금지.\`;
+JSON 외 다른 텍스트 절대 금지.`;
 
   try {
     const raw = await AI_PROVIDER.call(chatSystem, commonChatHistory);
-    const json = JSON.parse(raw.replace(/\`\`\`json|\`\`\`/g, '').trim());
+    const json = JSON.parse(raw.replace(/```json|```/g, '').trim());
 
     // 수정된 안들 업데이트
     if (json.updates && json.updates.length > 0) {
@@ -833,19 +833,20 @@ JSON 외 다른 텍스트 절대 금지.\`;
 
     // 채팅 응답 표시
     const updatedLabels = json.updates ? json.updates.map(u => u.label).join(', ') : '';
-    loading.innerHTML = \`
-      <div style="margin-bottom:8px;">\${json.message || '수정됐습니다.'}</div>
-      \${json.updates ? json.updates.map(u => \`
-        <div style="margin-bottom:8px;">
-          <div style="font-size:11px;font-weight:700;color:var(--brand-mid);margin-bottom:4px;">\${u.label}</div>
-          <div style="background:white;padding:8px 12px;border-radius:6px;border-left:3px solid var(--green);font-size:12px;white-space:pre-wrap;">\${fmt(u.text)}</div>
-          <div style="display:flex;gap:6px;margin-top:6px;">
-            <button onclick="adoptUpdated(\${u.index})" style="padding:4px 12px;background:var(--green);color:white;border:none;border-radius:6px;cursor:pointer;font-size:11px;font-weight:700;">✅ 채택</button>
-            <button onclick="copyUpdated(\${u.index})" style="padding:4px 12px;background:var(--surface2);color:var(--text-secondary);border:none;border-radius:6px;cursor:pointer;font-size:11px;">📋 복사</button>
-          </div>
-        </div>
-      \`).join('') : ''}
-    \`;
+    // 채팅 응답 렌더링
+    let html = '<div style="margin-bottom:8px;">' + (json.message || '수정됐습니다.') + '</div>';
+    if (json.updates) {
+      json.updates.forEach(u => {
+        html += '<div style="margin-bottom:8px;">';
+        html += '<div style="font-size:11px;font-weight:700;color:var(--brand-mid);margin-bottom:4px;">' + u.label + '</div>';
+        html += '<div style="background:white;padding:8px 12px;border-radius:6px;border-left:3px solid var(--green);font-size:12px;white-space:pre-wrap;">' + fmt(u.text) + '</div>';
+        html += '<div style="display:flex;gap:6px;margin-top:6px;">';
+        html += '<button onclick="adoptUpdated(' + u.index + ')" style="padding:4px 12px;background:var(--green);color:white;border:none;border-radius:6px;cursor:pointer;font-size:11px;font-weight:700;">✅ 채택</button>';
+        html += '<button onclick="copyUpdated(' + u.index + ')" style="padding:4px 12px;background:var(--surface2);color:var(--text-secondary);border:none;border-radius:6px;cursor:pointer;font-size:11px;">📋 복사</button>';
+        html += '</div></div>';
+      });
+    }
+    loading.innerHTML = html;
 
     commonChatHistory.push({ role: 'assistant', content: json.message + ' ' + (json.updates || []).map(u => u.label + ': ' + u.text).join(' / ') });
 
