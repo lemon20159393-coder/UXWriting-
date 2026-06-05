@@ -255,8 +255,8 @@ select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%
   <!-- WRITE TAB -->
   <div id="tab-write" class="tab-content active">
 
-    <!-- API 배너 -->
-    <div class="api-banner" id="apiBanner">
+    <!-- API 배너 (기본 숨김, 서버키 없을 때만 표시) -->
+    <div class="api-banner" id="apiBanner" style="display:none;">
       <div class="api-banner-icon">🔑</div>
       <div style="flex:1">
         <div class="api-banner-title">Claude API Key를 입력해 주세요</div>
@@ -592,11 +592,11 @@ let isGenerated = false;
 // ── API KEY ───────────────────────────────────
 async function checkApiKey() {
   try {
-    // 서버 환경변수 키 확인 - /api/check-key 엔드포인트
     const testRes = await fetch('/api/check-key');
     if (testRes.ok) {
       const data = await testRes.json();
       if (data.hasKey) {
+        // 서버 키 있음 → 배너 숨기고 연결 표시
         document.getElementById('apiBanner').style.display = 'none';
         document.getElementById('apiStatus').classList.add('connected');
         window._useServerKey = true;
@@ -605,11 +605,14 @@ async function checkApiKey() {
     }
   } catch(e) {}
 
-  // 로컬 저장 키 확인
+  // 서버 키 없음 → 로컬 키 확인
   const key = localStorage.getItem('daou_ux_api_key');
   if (key) {
     document.getElementById('apiBanner').style.display = 'none';
     document.getElementById('apiStatus').classList.add('connected');
+  } else {
+    // 둘 다 없을 때만 배너 표시
+    document.getElementById('apiBanner').style.display = 'flex';
   }
 }
 function saveApiKey() {
