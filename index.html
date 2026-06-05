@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>다우오피스 UX 라이팅 툴 · Beta</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --brand: #0A3D6B; --brand-mid: #1260A8; --brand-bright: #1D78E0;
+  --brand-light: #E6EFF9; --brand-glow: rgba(29,120,224,0.12);
+  --surface: #F6F8FB; --surface2: #EDF1F7; --white: #FFFFFF;
+  --border: #DDE3EC; --border-strong: #C5CEDC;
+  --text-primary: #0F1C2E; --text-secondary: #4A5568; --text-tertiary: #8A97A8;
+  --green: #0D7A4E; --green-light: #E3F5EE; --green-border: #A8DECA;
+  --red: #C0392B; --red-light: #FDECEA;
+  --orange: #B45309; --orange-light: #FEF3E2; --orange-border: #F6C96B;
+  --purple: #5B3FA8; --purple-light: #EEE9F8;
+  --mono: 'DM Mono', monospace; --sans: 'Noto Sans KR', sans-serif;
+  --r-sm: 6px; --r-md: 10px; --r-lg: 14px; --r-xl: 20px;
+  --shadow-xs: 0 1px 3px rgba(10,61,107,0.06);
+  --shadow-sm: 0 2px 8px rgba(10,61,107,0.08);
+  --shadow-md: 0 4px 20px rgba(10,61,107,0.12);
+  --shadow-focus: 0 0 0 3px rgba(29,120,224,0.18);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--sans);background:var(--surface);color:var(--text-primary);min-height:100vh;font-size:14px;line-height:1.6;}
+
+/* ── HEADER ── */
+header{position:sticky;top:0;z-index:200;background:var(--brand);box-shadow:0 2px 12px rgba(10,61,107,0.18);}
+.header-inner{max-width:1200px;margin:0 auto;padding:0 32px;height:56px;display:flex;align-items:center;gap:16px;}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.logo-chip{background:var(--brand-bright);color:white;font-family:var(--mono);font-size:11px;font-weight:500;padding:4px 10px;border-radius:var(--r-sm);letter-spacing:.04em;}
+.logo-text{font-size:15px;font-weight:700;color:white;letter-spacing:-.02em;}
+.logo-sep{color:rgba(255,255,255,.25);font-size:16px;}
+.logo-sub{font-size:12px;color:rgba(255,255,255,.45);font-weight:300;}
+.beta-tag{font-size:10px;font-weight:700;background:var(--orange-light);color:var(--orange);padding:2px 8px;border-radius:99px;border:1px solid var(--orange-border);letter-spacing:.06em;}
+.header-right{margin-left:auto;display:flex;align-items:center;gap:12px;}
+.api-status{display:none;align-items:center;gap:6px;font-size:12px;color:rgba(255,255,255,.6);}
+.api-status.connected{display:flex;}
+.api-dot{width:7px;height:7px;border-radius:50%;background:#4ade80;}
+.header-nav{display:flex;gap:2px;}
+.nav-btn{padding:7px 16px;border:none;cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:500;border-radius:var(--r-md);transition:all .15s;color:rgba(255,255,255,.6);background:transparent;}
+.nav-btn.active{background:rgba(255,255,255,.15);color:white;}
+.nav-btn:hover:not(.active){background:rgba(255,255,255,.08);color:rgba(255,255,255,.85);}
+
+/* ── MAIN ── */
+.main{max-width:1200px;margin:0 auto;padding:32px 32px 80px;}
+.tab-content{display:none;}.tab-content.active{display:block;}
+
+/* ── API BANNER ── */
+.api-banner{background:linear-gradient(135deg,#FEF3E2,#FFF8F0);border:1px solid var(--orange-border);border-radius:var(--r-xl);padding:20px 24px;margin-bottom:24px;display:flex;align-items:flex-start;gap:16px;}
+.api-banner-icon{font-size:24px;flex-shrink:0;margin-top:2px;}
+.api-banner-title{font-size:14px;font-weight:700;color:var(--orange);margin-bottom:4px;}
+.api-banner-desc{font-size:13px;color:var(--text-secondary);line-height:1.6;margin-bottom:12px;}
+.api-key-row{display:flex;gap:8px;}
+.api-key-input{flex:1;padding:10px 14px;border:1.5px solid var(--orange-border);border-radius:var(--r-md);font-family:var(--sans);font-size:13px;color:var(--text-primary);background:white;outline:none;transition:border-color .15s;}
+.api-key-input:focus{border-color:var(--orange);}
+.btn-api-save{padding:10px 20px;background:var(--orange);color:white;border:none;border-radius:var(--r-md);font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer;transition:background .15s;white-space:nowrap;}
+.btn-api-save:hover{background:#92400e;}
+
+/* ── LAYOUT: 입력 전 (풀 와이드) / 입력 후 (사이드바 + 결과) ── */
+.layout-full{display:block;transition:all .4s ease;}
+.layout-split{display:grid;grid-template-columns:380px 1fr;gap:24px;align-items:start;}
+.layout-full .form-panel{max-width:680px;margin:0 auto;}
+
+/* ── PANEL ── */
+.panel{background:var(--white);border:1px solid var(--border);border-radius:var(--r-xl);box-shadow:var(--shadow-sm);overflow:hidden;}
+.panel-head{padding:20px 24px 18px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:12px;}
+.panel-icon{width:38px;height:38px;flex-shrink:0;background:var(--brand-light);border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;font-size:18px;}
+.panel-title{font-size:16px;font-weight:700;color:var(--text-primary);letter-spacing:-.02em;}
+.panel-desc{font-size:12px;color:var(--text-tertiary);margin-top:3px;}
+.panel-body{padding:24px;}
+
+/* ── FORM ── */
+.form-group{margin-bottom:18px;}.form-group:last-child{margin-bottom:0;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.form-row-full{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+label{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--text-secondary);margin-bottom:7px;letter-spacing:.01em;}
+.req{color:var(--brand-bright);font-size:14px;line-height:1;}
+.opt{font-size:10px;font-weight:500;color:var(--text-tertiary);background:var(--surface2);padding:1px 7px;border-radius:99px;margin-left:auto;}
+input[type="text"],input[type="password"],textarea,select{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--r-md);font-family:var(--sans);font-size:13px;color:var(--text-primary);background:var(--white);outline:none;transition:border-color .15s,box-shadow .15s;resize:none;}
+input:focus,textarea:focus,select:focus{border-color:var(--brand-bright);box-shadow:var(--shadow-focus);}
+input::placeholder,textarea::placeholder{color:var(--text-tertiary);font-size:12px;}
+select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238A97A8' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;}
+
+/* UI 힌트 */
+.ui-hint{margin-top:7px;padding:9px 13px;border-radius:var(--r-sm);font-size:12px;display:none;animation:fadeIn .2s ease;}
+.ui-hint.show{display:block;}
+.hint-toast{background:#EBF3FF;color:#1260A8;border-left:3px solid #1D78E0;}
+.hint-input{background:var(--purple-light);color:var(--purple);border-left:3px solid var(--purple);}
+.hint-alert{background:var(--red-light);color:var(--red);border-left:3px solid var(--red);}
+.hint-alert-action{background:var(--orange-light);color:var(--orange);border-left:3px solid var(--orange);}
+.hint-confirm{background:#FEF3E2;color:#B45309;border-left:3px solid #F59E0B;}
+.hint-screen{background:var(--brand-light);color:var(--brand);border-left:3px solid var(--brand-mid);}
+.hint-feature{background:var(--green-light);color:var(--green);border-left:3px solid var(--green);}
+.hint-empty{background:var(--surface2);color:var(--text-secondary);border-left:3px solid var(--border-strong);}
+.hint-ai{background:linear-gradient(135deg,#EEE9F8,#EBF3FF);color:var(--purple);border-left:3px solid var(--purple);}
+
+.form-divider{margin:18px 0;font-size:11px;font-weight:700;color:var(--text-tertiary);letter-spacing:.08em;text-transform:uppercase;display:flex;align-items:center;gap:10px;}
+.form-divider::before,.form-divider::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* ── 생성 버튼 ── */
+.btn-wrap{margin-top:24px;display:flex;flex-direction:column;gap:8px;}
+.btn-generate{width:100%;padding:14px;background:var(--brand);color:white;border:none;border-radius:var(--r-lg);font-family:var(--sans);font-size:15px;font-weight:700;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:-.01em;box-shadow:0 4px 16px rgba(10,61,107,0.24);}
+.btn-generate:hover{background:var(--brand-mid);transform:translateY(-1px);box-shadow:0 6px 24px rgba(10,61,107,0.30);}
+.btn-generate:active{transform:translateY(0);}
+.btn-generate:disabled{background:var(--border);color:var(--text-tertiary);cursor:not-allowed;transform:none;box-shadow:none;}
+.btn-reset{width:100%;padding:11px;background:transparent;color:var(--text-tertiary);border:1.5px solid var(--border);border-radius:var(--r-lg);font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;}
+.btn-reset:hover{color:var(--text-secondary);border-color:var(--border-strong);}
+
+/* ── 결과 패널 ── */
+.results-header{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+.results-label{font-size:12px;font-weight:700;color:var(--text-tertiary);letter-spacing:.06em;text-transform:uppercase;}
+.results-meta{font-size:12px;color:var(--text-tertiary);margin-left:auto;background:var(--surface2);padding:3px 10px;border-radius:99px;}
+
+/* ── 결과 카드 ── */
+.result-card{border:1.5px solid var(--border);border-radius:var(--r-lg);overflow:hidden;margin-bottom:12px;transition:border-color .15s,box-shadow .15s;background:var(--white);}
+.result-card:nth-child(1){animation:slideUp .35s .05s both;}
+.result-card:nth-child(2){animation:slideUp .35s .10s both;}
+.result-card:nth-child(3){animation:slideUp .35s .15s both;}
+.result-card:nth-child(4){animation:slideUp .35s .20s both;}
+.result-card:nth-child(5){animation:slideUp .35s .25s both;}
+.result-card:hover{border-color:var(--brand-bright);box-shadow:0 0 0 3px var(--brand-glow);}
+.result-card.adopted{border-color:var(--green);box-shadow:0 0 0 3px rgba(13,122,78,.1);}
+
+.result-head{padding:11px 16px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+.result-num{font-family:var(--mono);font-size:11px;font-weight:500;color:white;background:var(--brand-mid);padding:2px 10px;border-radius:99px;}
+.result-num.top{background:var(--brand-bright);}
+.result-rec{font-size:10px;font-weight:700;color:var(--brand-bright);background:var(--brand-light);padding:2px 8px;border-radius:99px;}
+.result-reason{font-size:11px;color:var(--text-tertiary);}
+.result-chars{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--text-tertiary);}
+
+.result-body{padding:16px;}
+.result-msg{font-size:13px;line-height:1.85;color:var(--text-primary);background:var(--surface);border-radius:var(--r-md);padding:14px 16px;white-space:pre-wrap;border-left:3px solid var(--brand-light);margin-bottom:14px;}
+.result-msg.adopted-msg{border-left-color:var(--green);}
+.result-msg .tag{font-family:var(--mono);font-size:10px;color:var(--text-tertiary);font-weight:500;}
+
+.result-actions{display:flex;gap:7px;flex-wrap:wrap;}
+.btn-adopt{padding:8px 18px;font-size:12px;font-weight:700;background:var(--green);color:white;border:none;border-radius:var(--r-md);cursor:pointer;font-family:var(--sans);transition:all .15s;display:flex;align-items:center;gap:5px;}
+.btn-adopt:hover{background:#0a6040;}
+.btn-adopt.done{background:var(--green-light);color:var(--green);cursor:default;border:1.5px solid var(--green-border);}
+.btn-refine,.btn-copy{padding:8px 15px;font-size:12px;font-weight:500;background:var(--white);color:var(--text-secondary);border:1.5px solid var(--border);border-radius:var(--r-md);cursor:pointer;font-family:var(--sans);transition:all .15s;display:flex;align-items:center;gap:5px;}
+.btn-refine:hover{border-color:var(--brand-bright);color:var(--brand-bright);}
+.btn-copy:hover{border-color:var(--brand-mid);color:var(--brand-mid);}
+
+/* ── 로딩 ── */
+.loading-state{display:none;flex-direction:column;align-items:center;padding:80px 32px;gap:20px;}
+.loading-state.show{display:flex;}
+.spinner{width:44px;height:44px;border:3px solid var(--border);border-top-color:var(--brand-bright);border-radius:50%;animation:spin .9s linear infinite;}
+.loading-dots{display:flex;gap:6px;}
+.loading-dot{width:7px;height:7px;border-radius:50%;background:var(--brand-light);animation:dot-pulse 1.2s ease-in-out infinite;}
+.loading-dot:nth-child(2){animation-delay:.2s;}.loading-dot:nth-child(3){animation-delay:.4s;}
+.loading-text{font-size:13px;color:var(--text-tertiary);}
+
+/* ── 빈 상태 ── */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 32px;text-align:center;gap:14px;}
+.empty-icon{font-size:48px;opacity:.25;}
+.empty-title{font-size:16px;font-weight:700;color:var(--text-secondary);}
+.empty-desc{font-size:13px;color:var(--text-tertiary);line-height:1.8;}
+
+/* ── 채팅 ── */
+.chat-panel{margin-top:12px;border:1.5px solid var(--brand-bright);border-radius:var(--r-lg);overflow:hidden;display:none;background:var(--white);animation:fadeIn .2s ease;}
+.chat-panel.show{display:block;}
+.chat-head{padding:11px 16px;background:linear-gradient(135deg,var(--brand-light),#EBF3FF);border-bottom:1px solid rgba(29,120,224,.15);display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--brand-mid);}
+.chat-messages{padding:16px;display:flex;flex-direction:column;gap:10px;max-height:280px;overflow-y:auto;}
+.msg{max-width:82%;padding:10px 14px;font-size:13px;line-height:1.65;border-radius:var(--r-lg);white-space:pre-wrap;animation:slideUp .2s ease;}
+.msg-ai{background:var(--surface2);color:var(--text-primary);border-radius:var(--r-lg) var(--r-lg) var(--r-lg) 4px;align-self:flex-start;}
+.msg-user{background:var(--brand);color:white;border-radius:var(--r-lg) var(--r-lg) 4px var(--r-lg);align-self:flex-end;}
+.chat-input-row{padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;}
+.chat-input{flex:1;padding:10px 13px;border:1.5px solid var(--border);border-radius:var(--r-md);font-family:var(--sans);font-size:13px;outline:none;resize:none;transition:border-color .15s;}
+.chat-input:focus{border-color:var(--brand-bright);}
+.btn-send{padding:10px 20px;background:var(--brand-bright);color:white;border:none;border-radius:var(--r-md);cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:700;transition:background .15s;}
+.btn-send:hover{background:var(--brand-mid);}
+.btn-send:disabled{background:var(--border);color:var(--text-tertiary);cursor:not-allowed;}
+
+/* ── 히스토리 ── */
+.history-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:28px;}
+.stat-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px 20px;box-shadow:var(--shadow-xs);}
+.stat-num{font-size:30px;font-weight:700;color:var(--brand);font-family:var(--mono);}
+.stat-label{font-size:12px;color:var(--text-tertiary);margin-top:3px;}
+.h-section-label{font-size:11px;font-weight:700;color:var(--text-tertiary);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;}
+.history-item{background:var(--white);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px 20px;margin-bottom:10px;transition:all .15s;}
+.history-item:hover{border-color:var(--border-strong);box-shadow:var(--shadow-xs);}
+.history-top{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+.h-badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:99px;}
+.hb-toast{background:var(--brand-light);color:var(--brand-mid);}
+.hb-confirm{background:var(--orange-light);color:var(--orange);}
+.hb-alert{background:var(--red-light);color:var(--red);}
+.hb-alert-action{background:var(--orange-light);color:var(--orange);}
+.hb-input{background:var(--purple-light);color:var(--purple);}
+.hb-feature{background:var(--green-light);color:var(--green);}
+.hb-empty{background:var(--surface2);color:var(--text-secondary);}
+.hb-screen{background:var(--brand-light);color:var(--brand);}
+.h-purpose{font-size:12px;color:var(--text-tertiary);margin-left:auto;max-width:240px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.h-date{font-size:11px;color:var(--text-tertiary);font-family:var(--mono);}
+.h-msg{font-size:13px;line-height:1.75;color:var(--text-primary);background:var(--surface);padding:12px 14px;border-radius:var(--r-md);white-space:pre-wrap;border-left:3px solid var(--green);margin-bottom:12px;}
+.h-actions{display:flex;gap:8px;}
+.btn-h{padding:6px 14px;font-size:12px;font-weight:500;border-radius:var(--r-sm);cursor:pointer;font-family:var(--sans);transition:all .15s;border:1.5px solid var(--border);background:var(--white);color:var(--text-secondary);}
+.btn-h:hover{border-color:var(--brand-bright);color:var(--brand-bright);}
+.btn-h.del:hover{border-color:var(--red);color:var(--red);background:var(--red-light);}
+.history-empty{text-align:center;padding:80px 0;color:var(--text-tertiary);font-size:13px;}
+
+/* ── 알림 토스트 ── */
+.noti{position:fixed;bottom:32px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--text-primary);color:white;padding:12px 24px;border-radius:var(--r-lg);font-size:13px;font-weight:500;transition:transform .3s cubic-bezier(.34,1.56,.64,1);z-index:9999;pointer-events:none;box-shadow:var(--shadow-md);}
+.noti.show{transform:translateX(-50%) translateY(0);}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+@keyframes slideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes dot-pulse{0%,80%,100%{transform:scale(.7);opacity:.4}40%{transform:scale(1);opacity:1}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <a class="logo" href="#">
+      <span class="logo-chip">DO</span>
+      <span class="logo-text">UX 라이팅 툴</span>
+      <span class="logo-sep">/</span>
+      <span class="logo-sub">DO서비스기획팀</span>
+    </a>
+    <span class="beta-tag">BETA</span>
+    <div class="header-right">
+      <div class="api-status" id="apiStatus">
+        <div class="api-dot"></div>
+        <span>Claude 연결됨</span>
+      </div>
+      <nav class="header-nav">
+        <button class="nav-btn active" onclick="switchTab('write',this)">✏️ 문구 생성</button>
+        <button class="nav-btn" onclick="switchTab('history',this)">📋 채택 히스토리</button>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<div class="main">
+
+  <!-- WRITE TAB -->
+  <div id="tab-write" class="tab-content active">
+
+    <!-- API 배너 -->
+    <div class="api-banner" id="apiBanner">
+      <div class="api-banner-icon">🔑</div>
+      <div style="flex:1">
+        <div class="api-banner-title">Claude API Key를 입력해 주세요</div>
+        <div class="api-banner-desc">Anthropic Console에서 발급받은 키를 입력하세요. 키는 이 브라우저에만 저장되며 서버로 전송되지 않습니다.</div>
+        <div class="api-key-row">
+          <input type="password" class="api-key-input" id="apiKeyInput" placeholder="sk-ant-api03-...">
+          <button class="btn-api-save" onclick="saveApiKey()">저장하기</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 레이아웃 wrapper -->
+    <div id="layoutWrapper" class="layout-full">
+
+      <!-- 입력 폼 -->
+      <div class="form-panel">
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-icon">✍️</div>
+            <div>
+              <div class="panel-title">문구 조건 입력</div>
+              <div class="panel-desc">필수 항목을 입력하면 가이드라인 기반 문구 5개를 제안합니다</div>
+            </div>
+          </div>
+          <div class="panel-body">
+
+            <div class="form-group">
+              <label><span class="req">•</span> 문구 목적</label>
+              <textarea id="purpose" rows="3" placeholder="이 문구가 어떤 상황에서 노출되는지 설명해 주세요&#10;예: 파일 삭제 시 사용자에게 결과를 경고하고 확인받는 상황"></textarea>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label><span class="req">•</span> UI 유형</label>
+                <select id="uiType" onchange="onUiTypeChange()">
+                  <option value="">선택해 주세요</option>
+                  <option value="토스트 팝업">토스트 팝업</option>
+                  <option value="인풋필드 오류">인풋필드 오류</option>
+                  <option value="얼럿 레이어">얼럿 레이어</option>
+                  <option value="얼럿 레이어 (액션 포함)">얼럿 레이어 (액션 포함)</option>
+                  <option value="컨펌 레이어">컨펌 레이어</option>
+                  <option value="화면 안내 문구">화면 안내 문구</option>
+                  <option value="기능별 설명">기능별 설명</option>
+                  <option value="빈 화면 (Empty State)">빈 화면</option>
+                  <option value="AI 추천">🤖 AI가 추천해 주세요</option>
+                </select>
+                <div id="uiHint" class="ui-hint"></div>
+              </div>
+              <div class="form-group">
+                <label><span class="req">•</span> 문구 유형</label>
+                <select id="msgType">
+                  <option value="">선택해 주세요</option>
+                  <option value="오류·실패">오류 · 실패</option>
+                  <option value="성공·완료">성공 · 완료</option>
+                  <option value="경고·확인">경고 · 확인</option>
+                  <option value="안내·설명">안내 · 설명</option>
+                  <option value="기능 소개">기능 소개</option>
+                  <option value="연동·설정">연동 · 설정</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-divider">선택 항목</div>
+
+            <div class="form-group">
+              <label>참고 문구 <span class="opt">선택</span></label>
+              <textarea id="refMsg" rows="2" placeholder="기존에 쓰던 문구나 초안이 있다면 입력&#10;예: 해당 파일을 삭제하시겠습니까?"></textarea>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>대상 (주어) <span class="opt">선택</span></label>
+                <input type="text" id="targetSubject" placeholder="예: 홍길동 계정 / 메일 앱">
+              </div>
+              <div class="form-group">
+                <label>추가 조건 <span class="opt">선택</span></label>
+                <input type="text" id="extraCondition" placeholder="예: 40자 이내 / Slack 포함">
+              </div>
+            </div>
+
+            <div class="btn-wrap">
+              <button class="btn-generate" id="generateBtn" onclick="generate()">✨ 문구 5개 생성하기</button>
+              <button class="btn-reset" onclick="resetForm()">초기화</button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- 결과 영역 (생성 후 나타남) -->
+      <div class="result-panel" id="resultPanel">
+
+        <!-- 로딩 -->
+        <div class="panel" id="loadingState" style="display:none">
+          <div class="loading-state show">
+            <div class="spinner"></div>
+            <div class="loading-dots">
+              <div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div>
+            </div>
+            <div class="loading-text">가이드라인 기반으로 문구를 생성하고 있습니다...</div>
+          </div>
+        </div>
+
+        <!-- 결과 목록 -->
+        <div id="resultsState" style="display:none">
+          <div class="results-header">
+            <span class="results-label">제안 문구</span>
+            <span class="results-meta" id="resultsMeta"></span>
+          </div>
+          <div id="resultsList"></div>
+
+          <!-- 대화형 수정 -->
+          <div class="chat-panel" id="chatPanel">
+            <div class="chat-head">
+              💬 <span id="chatLabel">수정 요청</span>
+              <button onclick="closeChat()" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--text-tertiary);font-size:20px;line-height:1;">×</button>
+            </div>
+            <div class="chat-messages" id="chatMessages"></div>
+            <div class="chat-input-row">
+              <textarea class="chat-input" id="chatInput" rows="2"
+                placeholder="수정 방향을 입력해 주세요&#10;예: 더 짧게 / 타이틀을 명사형으로 / 결과를 더 강조해 주세요"
+                onkeydown="handleChatKey(event)"></textarea>
+              <button class="btn-send" id="sendBtn" onclick="sendChat()">전송</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- HISTORY TAB -->
+  <div id="tab-history" class="tab-content">
+    <div id="historyContent"></div>
+  </div>
+
+</div>
+
+<div class="noti" id="noti"></div>
+
+<script>
+// ── AI PROVIDER LAYER ──────────────────────────
+// 이 부분만 수정하면 다른 AI로 교체 가능
+const AI_PROVIDER = {
+  name: 'claude',
+  model: 'claude-sonnet-4-20250514',
+  async call(systemPrompt, messages) {
+    const apiKey = localStorage.getItem('daou_ux_api_key');
+    if (!apiKey) throw new Error('API Key 없음');
+    const res = await fetch('/api/claude', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+      },
+      body: JSON.stringify({
+        model: this.model,
+        max_tokens: 2000,
+        system: systemPrompt,
+        messages
+      })
+    });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || '오류'); }
+    const data = await res.json();
+    return data.content[0].text;
+  }
+};
+
+// ── 가이드라인 시스템 프롬프트 ──────────────────
+const SYSTEM_PROMPT = `당신은 다우오피스 B2B 서비스의 UX 라이팅 전문가입니다.
+아래 가이드라인을 반드시 준수하여 문구를 제안하세요.
+
+## 톤앤매너
+- 신뢰감 있는 파트너 + 약간의 친절함
+- 전문적이되 딱딱하지 않게, 정확하되 차갑지 않게
+
+## 5대 원칙
+1. 간결하게, 그러나 충분하게: 한 메시지 = 1가지 핵심 정보. "해당"은 항상 삭제.
+2. 친절하되 구구절절하지 않게: "하시기 바랍니다", "정말" 사용 금지.
+3. UI 유형에 맞는 깊이로 해결 방향 안내: 토스트는 짧게, 얼럿·컨펌은 풀어서.
+4. 일관된 어미: 요청→"~해 주세요", 무거운 확인→"~하시겠습니까?", 성공→"~했습니다", 기능설명→"~됩니다"
+5. 주어는 생략하되 대상 특정 시 명시
+
+## UI 유형별 기준
+- 토스트 팝업: 40자 이내, 결과 1문장, 버튼 없음
+- 인풋필드 오류: 30자 이내, 예시 포함 권장
+- 얼럿 레이어: 확인 1개, 원인(1문장) + 해결방향(1문장)
+- 얼럿 레이어 (액션 포함): 확인 + 액션 버튼(취소 없음), 읽고 다음 행동으로 이동 시
+- 컨펌 레이어: [타이틀] 명사/동사원형 10자이내 + [본문] 결과설명 + [질문] ~하시겠습니까? + [버튼] 동사/취소
+- 화면 안내 문구: 40자 이내 best, 80자까지 허용
+- 기능별 설명: 40자 이내, 기능이 주어 → "~됩니다"
+- 빈 화면: 상태 설명 + CTA 힌트
+
+## 금지어
+"해당~", "하시기 바랍니다", "정말 ~하시겠습니까?", "잘못 입력하셨습니다", "틀렸습니다", "~되었습니다"(수동태), "완전 삭제됩니다", 타이틀에 "~하시겠습니까?"
+
+## 출력 형식 (반드시 JSON만 응답, 다른 텍스트 절대 금지)
+{
+  "uiTypeRecommended": "AI 추천 UI 유형 (입력값이 'AI 추천'일 때만, 나머지는 null)",
+  "uiTypeReason": "추천 이유 (위와 동일, 나머지는 null)",
+  "suggestions": [
+    {
+      "label": "1안",
+      "isRecommended": true,
+      "reason": "추천 이유",
+      "text": "제안 문구",
+      "charCount": 글자수
+    }
+  ]
+}
+suggestions는 반드시 5개. isRecommended는 1개만 true.`;
+
+// ── UI 유형 힌트 ──────────────────────────────
+const UI_HINTS = {
+  '토스트 팝업':             { cls:'hint-toast',        text:'버튼 없음 · 자동으로 사라짐 · 40자 이내\n예: "저장했습니다." / "2자 이상, 32자 이하로 입력해 주세요."' },
+  '인풋필드 오류':           { cls:'hint-input',        text:'필드 바로 아래 인라인 표시 · 30자 이내\n예: "올바른 이메일 형식을 입력해 주세요. (예: name@domain.com)"' },
+  '얼럿 레이어':             { cls:'hint-alert',        text:'확인 버튼 1개 · 읽고 닫기만 · 사용자가 할 수 있는 게 없는 경우\n예: "파일 업로드에 실패했습니다. 잠시 후 다시 시도해 주세요."' },
+  '얼럿 레이어 (액션 포함)': { cls:'hint-alert-action', text:'확인 + 액션 버튼 · 취소 없음 · 읽고 다음 행동으로 이동이 필요한 경우\n예: "Slack 연동이 만료됐습니다." → [확인] [연동 설정으로 이동]' },
+  '컨펌 레이어':             { cls:'hint-confirm',      text:'확인 + 취소 2개 · 사용자가 예/아니오를 선택해야 하는 경우\n예: [타이틀] 파일 삭제 / [본문] 삭제하면 복구할 수 없습니다. / [버튼] 삭제 · 취소' },
+  '화면 안내 문구':          { cls:'hint-screen',       text:'화면 상단 타이틀 아래 · 40자 best, 80자까지 허용\n예: "Slack 계정을 연결하면 다우오피스 알림을 Slack에서 받을 수 있습니다."' },
+  '기능별 설명':             { cls:'hint-feature',      text:'기능명 옆 한 줄 · 40자 이내 · 기능이 주어 → "~됩니다"\n예: "휴가 신청 시 Google 캘린더에 일정이 자동 등록됩니다."' },
+  '빈 화면 (Empty State)':  { cls:'hint-empty',        text:'데이터 없을 때 · 상태 설명 + 다음 행동 힌트\n예: "아직 문항이 없습니다. 문항을 추가해 보세요."' },
+  'AI 추천':                 { cls:'hint-ai',           text:'✨ 목적을 입력하면 AI가 적합한 UI 유형을 먼저 추천하고 문구를 생성합니다' },
+};
+
+function onUiTypeChange() {
+  const val = document.getElementById('uiType').value;
+  const hint = document.getElementById('uiHint');
+  if (val && UI_HINTS[val]) {
+    const h = UI_HINTS[val];
+    hint.className = `ui-hint show ${h.cls}`;
+    hint.innerHTML = `<span style="white-space:pre-wrap;line-height:1.6;">${h.text}</span>`;
+  } else {
+    hint.className = 'ui-hint';
+    hint.innerHTML = '';
+  }
+}
+
+// ── STATE ─────────────────────────────────────
+let suggestions = [], adoptedIdx = -1, chatIdx = -1, chatHistory = [];
+let isGenerated = false;
+
+// ── API KEY ───────────────────────────────────
+function checkApiKey() {
+  const key = localStorage.getItem('daou_ux_api_key');
+  if (key) {
+    document.getElementById('apiBanner').style.display = 'none';
+    document.getElementById('apiStatus').classList.add('connected');
+  }
+}
+function saveApiKey() {
+  const key = document.getElementById('apiKeyInput').value.trim();
+  if (!key) return toast('API Key를 입력해 주세요.');
+  if (!key.startsWith('sk-')) return toast('올바른 API Key 형식이 아닙니다.');
+  localStorage.setItem('daou_ux_api_key', key);
+  document.getElementById('apiBanner').style.display = 'none';
+  document.getElementById('apiStatus').classList.add('connected');
+  toast('✅ API Key가 저장됐습니다. 문구를 생성해 보세요!');
+}
+
+// ── TABS ─────────────────────────────────────
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById(`tab-${tab}`).classList.add('active');
+  btn.classList.add('active');
+  if (tab === 'history') renderHistory();
+}
+
+// ── 레이아웃 전환 ─────────────────────────────
+function switchToSplitLayout() {
+  const wrapper = document.getElementById('layoutWrapper');
+  const resultPanel = document.getElementById('resultPanel');
+  wrapper.className = 'layout-split';
+  resultPanel.style.display = 'block';
+  // 폼 패널 스크롤 to top
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function switchToFullLayout() {
+  const wrapper = document.getElementById('layoutWrapper');
+  const resultPanel = document.getElementById('resultPanel');
+  wrapper.className = 'layout-full';
+  resultPanel.style.display = 'none';
+}
+
+// ── GENERATE ─────────────────────────────────
+async function generate() {
+  const purpose = document.getElementById('purpose').value.trim();
+  const uiType  = document.getElementById('uiType').value;
+  const msgType = document.getElementById('msgType').value;
+  const refMsg  = document.getElementById('refMsg').value.trim();
+  const target  = document.getElementById('targetSubject').value.trim();
+  const extra   = document.getElementById('extraCondition').value.trim();
+
+  if (!purpose) return toast('문구 목적을 입력해 주세요.');
+  if (!uiType)  return toast('UI 유형을 선택해 주세요.');
+  if (!msgType) return toast('문구 유형을 선택해 주세요.');
+  if (!localStorage.getItem('daou_ux_api_key')) return toast('먼저 Claude API Key를 입력해 주세요.');
+
+  adoptedIdx = -1; chatHistory = []; chatIdx = -1;
+
+  // 레이아웃 전환
+  switchToSplitLayout();
+  document.getElementById('loadingState').style.display = 'block';
+  document.getElementById('resultsState').style.display = 'none';
+  document.getElementById('chatPanel').classList.remove('show');
+  document.getElementById('generateBtn').disabled = true;
+
+  const userPrompt = `문구 목적: ${purpose}
+UI 유형: ${uiType}
+문구 유형: ${msgType}
+${refMsg ? `참고 문구 (기존): ${refMsg}` : ''}
+${target ? `대상(주어): ${target}` : ''}
+${extra ? `추가 조건: ${extra}` : ''}
+
+위 조건으로 다우오피스 가이드라인에 맞는 문구 5개를 제안해 주세요.`;
+
+  try {
+    const raw = await AI_PROVIDER.call(SYSTEM_PROMPT, [{ role: 'user', content: userPrompt }]);
+    const json = JSON.parse(raw.replace(/```json|```/g, '').trim());
+    suggestions = json.suggestions;
+
+    let meta = `${uiType} · ${msgType}`;
+    if (json.uiTypeRecommended) meta = `✨ AI 추천: ${json.uiTypeRecommended} — ${json.uiTypeReason}`;
+    document.getElementById('resultsMeta').textContent = meta;
+
+    renderResults();
+  } catch (e) {
+    const errMsg = e?.message || String(e); toast(`오류: ${errMsg}`); alert(`상세 오류:\n${errMsg}`);
+    switchToFullLayout();
+    console.error(e);
+  } finally {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('generateBtn').disabled = false;
+  }
+}
+
+// ── RENDER ───────────────────────────────────
+function renderResults() {
+  document.getElementById('resultsList').innerHTML = suggestions.map((s, i) => `
+    <div class="result-card ${adoptedIdx===i?'adopted':''}" id="rc-${i}">
+      <div class="result-head">
+        <span class="result-num ${s.isRecommended?'top':''}">${s.label}</span>
+        ${s.isRecommended ? '<span class="result-rec">⭐ 추천</span>' : ''}
+        <span class="result-reason">${s.reason}</span>
+        <span class="result-chars">${s.charCount}자</span>
+      </div>
+      <div class="result-body">
+        <div class="result-msg ${adoptedIdx===i?'adopted-msg':''}">${fmt(s.text)}</div>
+        <div class="result-actions">
+          ${adoptedIdx===i
+            ? `<button class="btn-adopt done">✅ 채택됨</button>`
+            : `<button class="btn-adopt" onclick="adopt(${i})">✅ 채택</button>`
+          }
+          <button class="btn-refine" onclick="openChat(${i})">💬 수정 요청</button>
+          <button class="btn-copy" onclick="copyText(${i})">📋 복사</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+  document.getElementById('resultsState').style.display = 'block';
+}
+
+function fmt(text) {
+  return text.replace(/\[(.+?)\]/g, '<span class="tag">[$1]</span>');
+}
+
+// ── ADOPT ─────────────────────────────────────
+function adopt(i) {
+  adoptedIdx = i;
+  const hist = JSON.parse(localStorage.getItem('daou_ux_history') || '[]');
+  hist.unshift({
+    id: Date.now(),
+    purpose: document.getElementById('purpose').value.trim(),
+    uiType: document.getElementById('uiType').value,
+    msgType: document.getElementById('msgType').value,
+    text: suggestions[i].text,
+    date: new Date().toLocaleDateString('ko-KR',{month:'long',day:'numeric'})
+  });
+  localStorage.setItem('daou_ux_history', JSON.stringify(hist));
+  renderResults();
+  toast('✅ 채택됐습니다! 히스토리에 저장됐어요.');
+}
+
+function copyText(i) {
+  navigator.clipboard.writeText(suggestions[i].text).then(() => toast('📋 복사됐습니다.'));
+}
+
+// ── CHAT ─────────────────────────────────────
+function openChat(i) {
+  chatIdx = i;
+  chatHistory = [{ role: 'user', content: `기존 문구:\n${suggestions[i].text}\n\n이 문구를 수정해 주세요.` }];
+  document.getElementById('chatLabel').textContent = `${suggestions[i].label} 기반 수정 요청`;
+  document.getElementById('chatMessages').innerHTML =
+    `<div class="msg msg-ai">${suggestions[i].label}을 기반으로 수정해 드릴게요.\n어떻게 바꾸고 싶으신가요?\n예: "더 짧게" / "타이틀을 더 명확하게" / "결과를 더 강조해 주세요"</div>`;
+  document.getElementById('chatPanel').classList.add('show');
+  document.getElementById('chatPanel').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function closeChat() { document.getElementById('chatPanel').classList.remove('show'); }
+
+function handleChatKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
+}
+
+async function sendChat() {
+  const input = document.getElementById('chatInput').value.trim();
+  if (!input) return;
+  const msgs = document.getElementById('chatMessages');
+  msgs.innerHTML += `<div class="msg msg-user">${input}</div>`;
+  document.getElementById('chatInput').value = '';
+  document.getElementById('sendBtn').disabled = true;
+
+  const loading = document.createElement('div');
+  loading.className = 'msg msg-ai';
+  loading.textContent = '수정 중...';
+  msgs.appendChild(loading);
+  msgs.scrollTop = msgs.scrollHeight;
+
+  chatHistory.push({ role: 'user', content: input });
+
+  const chatSystem = SYSTEM_PROMPT + `\n\n## 수정 요청 모드
+사용자의 요청에 따라 문구를 개선해 주세요.
+JSON 형식으로만 응답: {"revisedText": "수정된 문구", "changeNote": "변경 내용 한 줄 요약"}`;
+
+  try {
+    const raw = await AI_PROVIDER.call(chatSystem, chatHistory);
+    const json = JSON.parse(raw.replace(/```json|```/g, '').trim());
+    loading.innerHTML = `<strong>수정됐습니다!</strong>\n${fmt(json.revisedText)}\n\n<span style="font-size:11px;color:var(--text-tertiary);">📝 ${json.changeNote}</span>`;
+    chatHistory.push({ role: 'assistant', content: json.revisedText });
+    suggestions[chatIdx].text = json.revisedText;
+    suggestions[chatIdx].charCount = json.revisedText.length;
+    renderResults();
+  } catch(e) {
+    loading.textContent = '수정 중 오류가 발생했습니다. 다시 시도해 주세요.';
+  } finally {
+    document.getElementById('sendBtn').disabled = false;
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+}
+
+// ── RESET ─────────────────────────────────────
+function resetForm() {
+  ['purpose','refMsg','targetSubject','extraCondition'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.value='';
+  });
+  document.getElementById('uiType').value = '';
+  document.getElementById('msgType').value = '';
+  document.getElementById('uiHint').className = 'ui-hint';
+  document.getElementById('uiHint').innerHTML = '';
+  document.getElementById('loadingState').style.display = 'none';
+  document.getElementById('resultsState').style.display = 'none';
+  document.getElementById('chatPanel').classList.remove('show');
+  switchToFullLayout();
+  suggestions = []; adoptedIdx = -1;
+}
+
+// ── HISTORY ─────────────────────────────────
+const BADGE = {
+  '토스트 팝업':'hb-toast','인풋필드 오류':'hb-input','얼럿 레이어':'hb-alert',
+  '얼럿 레이어 (액션 포함)':'hb-alert-action','컨펌 레이어':'hb-confirm',
+  '화면 안내 문구':'hb-screen','기능별 설명':'hb-feature','빈 화면 (Empty State)':'hb-empty',
+};
+
+function renderHistory() {
+  const hist = JSON.parse(localStorage.getItem('daou_ux_history') || '[]');
+  const el = document.getElementById('historyContent');
+  if (!hist.length) {
+    el.innerHTML = `<div class="panel"><div class="history-empty">아직 채택된 문구가 없습니다.<br>문구를 생성하고 채택해 보세요! 👆</div></div>`;
+    return;
+  }
+  const types = [...new Set(hist.map(h=>h.uiType))];
+  const thisWeek = hist.filter(h => Date.now()-h.id < 7*24*60*60*1000).length;
+  el.innerHTML = `
+    <div class="history-stats">
+      <div class="stat-card"><div class="stat-num">${hist.length}</div><div class="stat-label">총 채택 문구</div></div>
+      <div class="stat-card"><div class="stat-num">${types.length}</div><div class="stat-label">UI 유형 수</div></div>
+      <div class="stat-card"><div class="stat-num">${thisWeek}</div><div class="stat-label">이번 주 채택</div></div>
+    </div>
+    <div class="h-section-label">채택된 문구 목록</div>
+    ${hist.map((h,i) => `
+      <div class="history-item">
+        <div class="history-top">
+          <span class="h-badge ${BADGE[h.uiType]||'hb-toast'}">${h.uiType}</span>
+          <span class="h-badge" style="background:var(--surface2);color:var(--text-secondary);">${h.msgType}</span>
+          <span class="h-purpose">${h.purpose}</span>
+          <span class="h-date">${h.date}</span>
+        </div>
+        <div class="h-msg">${fmt(h.text)}</div>
+        <div class="h-actions">
+          <button class="btn-h" onclick="copyHistory(${i})">📋 복사</button>
+          <button class="btn-h del" onclick="deleteHistory(${i})">🗑 삭제</button>
+        </div>
+      </div>
+    `).join('')}
+  `;
+}
+
+function copyHistory(i) {
+  const hist = JSON.parse(localStorage.getItem('daou_ux_history')||'[]');
+  navigator.clipboard.writeText(hist[i].text).then(() => toast('📋 복사됐습니다.'));
+}
+function deleteHistory(i) {
+  const hist = JSON.parse(localStorage.getItem('daou_ux_history')||'[]');
+  hist.splice(i,1);
+  localStorage.setItem('daou_ux_history', JSON.stringify(hist));
+  renderHistory();
+  toast('삭제됐습니다.');
+}
+
+function toast(msg) {
+  const el = document.getElementById('noti');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'), 2800);
+}
+
+// ── INIT ─────────────────────────────────────
+checkApiKey();
+document.getElementById('resultPanel').style.display = 'none';
+</script>
+</body>
+</html>
