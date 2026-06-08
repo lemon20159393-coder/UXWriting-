@@ -146,18 +146,17 @@ select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%
 .result-reason{font-size:11px;color:var(--text-tertiary);}
 .result-chars{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--text-tertiary);}
 
-.result-body{padding:16px;}
-.result-msg{font-size:13px;line-height:1.85;color:var(--text-primary);background:var(--surface);border-radius:var(--r-md);padding:14px 16px;white-space:pre-wrap;border-left:3px solid var(--brand-light);margin-bottom:14px;}
+.result-body{padding:10px 12px;display:flex;align-items:flex-start;gap:10px;}
+.result-msg{flex:1;font-size:13px;line-height:1.8;color:var(--text-primary);background:var(--surface);border-radius:var(--r-md);padding:10px 12px;white-space:pre-wrap;border-left:2px solid var(--brand-light);}
 .result-msg.adopted-msg{border-left-color:var(--green);}
 .result-msg .tag{font-family:var(--mono);font-size:10px;color:var(--text-tertiary);font-weight:500;}
 
-.result-actions{display:flex;gap:7px;flex-wrap:wrap;}
-.btn-adopt{padding:8px 18px;font-size:12px;font-weight:700;background:var(--green);color:white;border:none;border-radius:var(--r-md);cursor:pointer;font-family:var(--sans);transition:all .15s;display:flex;align-items:center;gap:5px;}
-.btn-adopt:hover{background:#0a6040;}
-.btn-adopt.done{background:var(--green-light);color:var(--green);cursor:default;border:1.5px solid var(--green-border);}
-.btn-refine,.btn-copy{padding:8px 15px;font-size:12px;font-weight:500;background:var(--white);color:var(--text-secondary);border:1.5px solid var(--border);border-radius:var(--r-md);cursor:pointer;font-family:var(--sans);transition:all .15s;display:flex;align-items:center;gap:5px;}
-.btn-refine:hover{border-color:var(--brand-bright);color:var(--brand-bright);}
-.btn-copy:hover{border-color:var(--brand-mid);color:var(--brand-mid);}
+.result-actions{display:flex;flex-direction:column;gap:6px;flex-shrink:0;}
+.btn-icon-action{width:32px;height:32px;border:1.5px solid var(--border);border-radius:var(--r-md);background:var(--white);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);transition:all .15s;font-size:15px;}
+.btn-icon-action:hover{border-color:var(--brand-bright);color:var(--brand-bright);background:var(--brand-light);}
+.btn-icon-action.adopt-btn{border-color:var(--green);color:var(--green);}
+.btn-icon-action.adopt-btn:hover{background:var(--green-light);}
+.btn-icon-action.done{background:var(--green-light);border-color:var(--green-border);color:var(--green);cursor:default;}
 
 /* ── 로딩 ── */
 .loading-state{display:none;flex-direction:column;align-items:center;padding:80px 32px;gap:20px;}
@@ -175,17 +174,23 @@ select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%
 .empty-desc{font-size:13px;color:var(--text-tertiary);line-height:1.8;}
 
 /* ── 채팅 ── */
-.chat-panel{margin-top:12px;border:1.5px solid var(--brand-bright);border-radius:var(--r-lg);overflow:hidden;display:none;background:var(--white);animation:fadeIn .2s ease;}
-.chat-panel.show{display:block;}
-.chat-head{padding:11px 16px;background:linear-gradient(135deg,var(--brand-light),#EBF3FF);border-bottom:1px solid rgba(29,120,224,.15);display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--brand-mid);}
-.chat-messages{padding:16px;display:flex;flex-direction:column;gap:10px;max-height:280px;overflow-y:auto;}
-.msg{max-width:82%;padding:10px 14px;font-size:13px;line-height:1.65;border-radius:var(--r-lg);white-space:pre-wrap;animation:slideUp .2s ease;}
+.chat-panel{display:none;}
+.common-chat-area{margin-top:14px;border:0.5px solid var(--border);border-radius:var(--r-lg);overflow:hidden;background:var(--white);}
+.common-chat-head{padding:10px 14px;background:var(--surface2);border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:8px;}
+.chat-status-dot{width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0;}
+.common-chat-title{font-size:12px;font-weight:500;color:var(--text-primary);}
+.common-chat-hint{font-size:11px;color:var(--text-tertiary);}
+.chat-examples{padding:8px 14px;display:flex;gap:6px;flex-wrap:wrap;border-bottom:0.5px solid var(--border);}
+.chat-ex-tag{font-size:11px;color:var(--brand-mid);background:var(--brand-light);padding:3px 10px;border-radius:99px;border:0.5px solid var(--brand-bright);cursor:pointer;transition:all .15s;}
+.chat-ex-tag:hover{background:var(--brand-bright);color:white;}
+.chat-messages{padding:12px 14px;display:flex;flex-direction:column;gap:8px;max-height:260px;overflow-y:auto;}
+.msg{max-width:82%;padding:9px 13px;font-size:13px;line-height:1.65;border-radius:var(--r-lg);white-space:pre-wrap;animation:slideUp .2s ease;}
 .msg-ai{background:var(--surface2);color:var(--text-primary);border-radius:var(--r-lg) var(--r-lg) var(--r-lg) 4px;align-self:flex-start;}
 .msg-user{background:var(--brand);color:white;border-radius:var(--r-lg) var(--r-lg) 4px var(--r-lg);align-self:flex-end;}
-.chat-input-row{padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;}
-.chat-input{flex:1;padding:10px 13px;border:1.5px solid var(--border);border-radius:var(--r-md);font-family:var(--sans);font-size:13px;outline:none;resize:none;transition:border-color .15s;}
+.chat-input-row{padding:10px 14px;border-top:0.5px solid var(--border);display:flex;gap:8px;align-items:flex-end;}
+.chat-input{flex:1;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r-md);font-family:var(--sans);font-size:13px;outline:none;resize:none;transition:border-color .15s;background:var(--white);color:var(--text-primary);}
 .chat-input:focus{border-color:var(--brand-bright);}
-.btn-send{padding:10px 20px;background:var(--brand-bright);color:white;border:none;border-radius:var(--r-md);cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:700;transition:background .15s;}
+.btn-send{padding:9px 16px;background:var(--brand);color:white;border:none;border-radius:var(--r-md);cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:700;transition:background .15s;white-space:nowrap;}
 .btn-send:hover{background:var(--brand-mid);}
 .btn-send:disabled{background:var(--border);color:var(--text-tertiary);cursor:not-allowed;}
 
@@ -394,24 +399,25 @@ select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%
           </div>
           <div id="resultsList"></div>
 
-          <!-- 공통 수정 요청 채팅 -->
-          <div id="commonChat" style="display:none;margin-top:16px;">
-            <div style="background:var(--brand-light);border-radius:var(--r-lg) var(--r-lg) 0 0;padding:12px 16px;display:flex;align-items:center;gap:8px;border:1.5px solid var(--brand-bright);border-bottom:none;">
-              <span style="font-size:14px;">💬</span>
-              <span style="font-size:13px;font-weight:700;color:var(--brand-mid);">수정 요청</span>
-              <span style="font-size:11px;color:var(--text-tertiary);margin-left:4px;">특정 안 또는 전체를 수정할 수 있어요</span>
-              <button onclick="closeCommonChat()" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--text-tertiary);font-size:20px;line-height:1;">×</button>
+          <!-- 공통 수정 요청 채팅 (항상 열려있음) -->
+          <div id="commonChat" class="common-chat-area" style="display:none;">
+            <div class="common-chat-head">
+              <div class="chat-status-dot"></div>
+              <span class="common-chat-title">수정 요청</span>
+              <span class="common-chat-hint">특정 안 또는 전체를 자유롭게 수정할 수 있어요</span>
             </div>
-            <div style="border:1.5px solid var(--brand-bright);border-top:none;border-radius:0 0 var(--r-lg) var(--r-lg);background:white;overflow:hidden;">
-              <div id="commonChatMessages" style="padding:16px;display:flex;flex-direction:column;gap:10px;max-height:320px;overflow-y:auto;"></div>
-              <div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;">
-                <textarea id="commonChatInput" rows="2" style="flex:1;padding:10px 13px;border:1.5px solid var(--border);border-radius:var(--r-md);font-family:var(--sans);font-size:13px;outline:none;resize:none;transition:border-color .15s;" 
-                  placeholder="수정 방향을 입력해 주세요&#10;예: &quot;1안을 더 짧게&quot; / &quot;3안에서 해당 표현 빼줘&quot; / &quot;전체를 컨펌 구조로 바꿔줘&quot;"
-                  onkeydown="handleCommonChatKey(event)"
-                  onfocus="this.style.borderColor='var(--brand-bright)'"
-                  onblur="this.style.borderColor='var(--border)'"></textarea>
-                <button id="commonSendBtn" onclick="sendCommonChat()" style="padding:10px 20px;background:var(--brand-bright);color:white;border:none;border-radius:var(--r-md);cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:700;transition:background .15s;align-self:flex-end;">전송</button>
-              </div>
+            <div class="chat-examples">
+              <span class="chat-ex-tag" onclick="fillChatInput('1안을 더 짧게 바꿔줘')">1안을 더 짧게</span>
+              <span class="chat-ex-tag" onclick="fillChatInput('전체를 더 친근한 톤으로 바꿔줘')">전체 톤 변경</span>
+              <span class="chat-ex-tag" onclick="fillChatInput('3안에서 해당 표현을 빼줘')">3안 수정</span>
+              <span class="chat-ex-tag" onclick="fillChatInput('2안이랑 4안을 합쳐줘')">2·4안 합치기</span>
+            </div>
+            <div class="chat-messages" id="commonChatMessages"></div>
+            <div class="chat-input-row">
+              <textarea id="commonChatInput" class="chat-input" rows="2"
+                placeholder="수정하고 싶은 부분을 말해 주세요&#10;예: &quot;1안을 더 짧게&quot; / &quot;전체적으로 더 친근하게&quot; / &quot;3안에서 해당 빼줘&quot;"
+                onkeydown="handleCommonChatKey(event)"></textarea>
+              <button id="commonSendBtn" class="btn-send" onclick="sendCommonChat()">전송</button>
             </div>
           </div>
         </div>
@@ -717,15 +723,19 @@ function renderResults() {
         <div class="result-msg ${adoptedIdx===i?'adopted-msg':''}">${fmt(s.text)}</div>
         <div class="result-actions">
           ${adoptedIdx===i
-            ? `<button class="btn-adopt done">✅ 채택됨</button>`
-            : `<button class="btn-adopt" onclick="adopt(${i})">✅ 채택</button>`
+            ? `<button class="btn-icon-action done" title="채택됨"><i class="ti ti-check" aria-hidden="true"></i></button>`
+            : `<button class="btn-icon-action adopt-btn" onclick="adopt(${i})" title="채택"><i class="ti ti-check" aria-hidden="true"></i></button>`
           }
-          <button class="btn-copy" onclick="copyText(${i})">📋 복사</button>
+          <button class="btn-icon-action" onclick="copyText(${i})" title="복사"><i class="ti ti-copy" aria-hidden="true"></i></button>
         </div>
       </div>
     </div>
   `).join('');
   document.getElementById('resultsState').style.display = 'block';
+  // 결과 생성 후 수정 요청 채팅창 자동 표시
+  if (suggestions.length > 0) {
+    openCommonChat();
+  }
 }
 
 function fmt(text) {
@@ -762,14 +772,17 @@ function openCommonChat() {
   chat.style.display = 'block';
   const msgs = document.getElementById('commonChatMessages');
   if (!msgs.innerHTML) {
-    const suggList = suggestions.map((s,i) => `${s.label}: ${s.text.split('\n')[0]}`).join('\n');
-    msgs.innerHTML = `<div class="msg msg-ai">안녕하세요! 현재 제안된 문구를 수정해 드릴게요.\n\n💡 이렇게 요청해 보세요:\n• "1안을 더 짧게 바꿔줘"\n• "3안에서 '해당' 표현 빼줘"\n• "전체를 토스트 형식으로 바꿔줘"\n• "2안이랑 4안 합쳐줘"</div>`;
     commonChatHistory = [{
       role: 'user',
-      content: `현재 제안된 문구 목록:\n${suggestions.map((s,i) => `[${s.label}] ${s.text}`).join('\n\n')}`
+      content: `현재 제안된 문구 목록:\n${suggestions.map((s,i) => '[' + s.label + '] ' + s.text).join('\n\n')}`
     }];
   }
   chat.scrollIntoView({behavior:'smooth', block:'nearest'});
+  document.getElementById('commonChatInput').focus();
+}
+
+function fillChatInput(text) {
+  document.getElementById('commonChatInput').value = text;
   document.getElementById('commonChatInput').focus();
 }
 
