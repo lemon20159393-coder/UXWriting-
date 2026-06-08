@@ -1,13 +1,4 @@
+
 {
-  "version": 2,
-  "builds": [
-    { "src": "api/claude.js", "use": "@vercel/node" },
-    { "src": "api/check-key.js", "use": "@vercel/node" },
-    { "src": "index.html", "use": "@vercel/static" }
-  ],
-  "routes": [
-    { "src": "/api/claude", "dest": "/api/claude.js" },
-    { "src": "/api/check-key", "dest": "/api/check-key.js" },
-    { "src": "/(.*)", "dest": "/index.html" }
-  ]
+  "type": "module"
 }
