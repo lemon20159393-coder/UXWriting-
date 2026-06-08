@@ -455,7 +455,8 @@ const AI_PROVIDER = {
   model: 'claude-sonnet-4-20250514',
   async call(systemPrompt, messages) {
     const apiKey = localStorage.getItem('daou_ux_api_key');
-    if (!apiKey) throw new Error('API Key 없음');
+    const useServer = window._useServerKey;
+    if (!apiKey && !useServer) throw new Error('API Key 없음');
     const res = await fetch('/api/claude', {
       method: 'POST',
       headers: {
