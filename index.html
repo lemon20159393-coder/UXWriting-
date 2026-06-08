@@ -466,7 +466,7 @@ select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%
 const AI_PROVIDER = {
   name: 'claude',
   model: 'claude-sonnet-4-20250514',
-  async call(systemPrompt, messages) {
+  async call(systemPrompt, messages, retryCount = 0) {
     const apiKey = localStorage.getItem('daou_ux_api_key');
     const useServer = window._useServerKey;
     if (!apiKey && !useServer) throw new Error('API Key 없음');
@@ -483,7 +483,17 @@ const AI_PROVIDER = {
         messages
       })
     });
-    if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || '오류'); }
+    if (!res.ok) {
+      const e = await res.json();
+      const msg = e.error?.message || '';
+      // 과부하 시 최대 2회 자동 재시도
+      if ((msg.includes('overloaded') || res.status === 529) && retryCount < 2) {
+        await new Promise(r => setTimeout(r, 2000 * (retryCount + 1)));
+        return this.call(systemPrompt, messages, retryCount + 1);
+      }
+      if (msg.includes('overloaded')) throw new Error('서버 혼잡. 잠시 후 다시 시도해 주세요.');
+      throw new Error('오류가 발생했습니다. 다시 시도해 주세요.');
+    }
     const data = await res.json();
     return data.content[0].text;
   }
