@@ -280,6 +280,16 @@ select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%
       <!-- 입력 폼 -->
       <div class="form-panel">
         <div class="panel">
+          <!-- 툴 소개 배너 -->
+          <div style="padding:14px 20px;background:linear-gradient(135deg,var(--brand-light),#f0f5fd);border-bottom:1px solid var(--border);">
+            <div style="display:flex;align-items:flex-start;gap:10px;">
+              <div style="font-size:20px;flex-shrink:0;margin-top:1px;">💡</div>
+              <div>
+                <div style="font-size:13px;font-weight:700;color:var(--brand);margin-bottom:4px;">다우오피스 UX 라이팅 툴이란?</div>
+                <div style="font-size:12px;color:var(--text-secondary);line-height:1.7;">기존 다우오피스 오류·안내 메시지 데이터를 기반으로, 일관성 있고 전문적이면서 친화적인 문구를 제안합니다. 단순 AI 채팅과 달리 <strong>다우오피스 가이드라인과 기존 문구 패턴</strong>을 기반으로 다우오피스다운 문구를 만들어 드려요.</div>
+              </div>
+            </div>
+          </div>
           <div class="panel-head">
             <div class="panel-icon">✍️</div>
             <div>
@@ -598,25 +608,26 @@ let isGenerated = false;
 
 // ── API KEY ───────────────────────────────────
 async function checkApiKey() {
+  // 배너는 기본 none 상태 유지
   try {
     const testRes = await fetch('/api/check-key');
     if (testRes.ok) {
       const data = await testRes.json();
       if (data.hasKey) {
-        // 서버 키 있음 → 배너 숨기고 연결 표시
-        document.getElementById('apiBanner').style.display = 'none';
-        document.getElementById('apiStatus').classList.add('connected');
         window._useServerKey = true;
-        return;
+        document.getElementById('apiStatus').classList.add('connected');
+        return; // 배너 그대로 none
       }
     }
-  } catch(e) {}
+  } catch(e) {
+    // fetch 실패해도 배너 표시 안 함 (네트워크 일시 오류 대비)
+  }
 
   // 서버 키 없음 → 로컬 키 확인
   const key = localStorage.getItem('daou_ux_api_key');
   if (key) {
-    document.getElementById('apiBanner').style.display = 'none';
     document.getElementById('apiStatus').classList.add('connected');
+    // 배너 그대로 none
   } else {
     // 둘 다 없을 때만 배너 표시
     document.getElementById('apiBanner').style.display = 'flex';
@@ -670,7 +681,7 @@ async function generate() {
   if (!purpose) return toast('문구 목적을 입력해 주세요.');
   if (!uiType)  return toast('UI 유형을 선택해 주세요.');
   if (!msgType) return toast('문구 유형을 선택해 주세요.');
-  if (!localStorage.getItem('daou_ux_api_key')) return toast('먼저 Claude API Key를 입력해 주세요.');
+  if (!window._useServerKey && !localStorage.getItem('daou_ux_api_key')) return toast('먼저 Claude API Key를 입력해 주세요.');
 
   adoptedIdx = -1; chatHistory = []; chatIdx = -1;
 
