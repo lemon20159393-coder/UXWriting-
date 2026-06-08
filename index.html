@@ -299,63 +299,76 @@ select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%
           </div>
           <div class="panel-body">
 
-            <!-- 필수 항목 -->
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
-              <span style="font-size:11px;font-weight:700;color:var(--brand-bright);letter-spacing:0.06em;text-transform:uppercase;">필수 항목</span>
-              <div style="flex:1;height:1px;background:linear-gradient(to right, var(--brand-light), transparent);"></div>
+            <!-- 필수 입력 -->
+            <div style="font-size:11px;font-weight:500;color:var(--brand-bright);text-transform:uppercase;letter-spacing:0.06em;display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+              필수 입력
+              <div style="flex:1;height:1px;background:var(--brand-light);"></div>
             </div>
 
-            <div class="form-group required-field">
-              <label>
-                <span style="font-size:15px;color:var(--brand-bright);line-height:1;">•</span>
+            <div class="form-group">
+              <label style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:500;color:var(--text-secondary);margin-bottom:7px;">
                 문구 목적
-                <span class="req-label">필수</span>
+                <span style="font-size:10px;font-weight:500;color:var(--brand-bright);background:var(--brand-light);padding:1px 8px;border-radius:99px;margin-left:auto;">필수</span>
               </label>
-              <textarea id="purpose" rows="3" placeholder="이 문구가 어떤 상황에서 노출되는지 설명해 주세요&#10;예: 파일 삭제 시 사용자에게 결과를 경고하고 확인받는 상황"></textarea>
+              <textarea id="purpose" rows="3"
+                style="border:1.5px solid var(--brand-bright);box-shadow:0 0 0 3px var(--brand-light);"
+                placeholder="이 문구가 어떤 상황에서 노출되는지 설명해 주세요&#10;예: 파일 삭제 시 사용자에게 결과를 경고하고 확인받는 상황"
+                onfocus="this.style.borderColor='var(--brand-bright)'"
+              ></textarea>
             </div>
 
             <div class="form-row">
-              <div class="form-group required-field">
-                <label>
-                  <span style="font-size:15px;color:var(--brand-bright);line-height:1;">•</span>
-                  UI 유형
-                  <span class="req-label">필수</span>
-                </label>
-                <select id="uiType" onchange="onUiTypeChange()">
-                  <option value="">선택해 주세요</option>
-                  <option value="토스트 팝업">토스트 팝업</option>
-                  <option value="인풋필드 오류">인풋필드 오류</option>
-                  <option value="얼럿 레이어">얼럿 레이어</option>
-                  <option value="얼럿 레이어 (액션 포함)">얼럿 레이어 (액션 포함)</option>
-                  <option value="컨펌 레이어">컨펌 레이어</option>
-                  <option value="화면 안내 문구">화면 안내 문구</option>
-                  <option value="기능별 설명">기능별 설명</option>
-                  <option value="빈 화면 (Empty State)">빈 화면</option>
-                  <option value="AI 추천">🤖 AI가 추천해 주세요</option>
-                </select>
+              <!-- UI 유형 - AI 추천 기본값 -->
+              <div class="form-group">
+                <label style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:500;color:var(--text-secondary);margin-bottom:7px;">UI 유형</label>
+                <div style="position:relative;">
+                  <div id="uiTypeDisplay" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border:0.5px solid var(--border);border-radius:var(--r-md);background:var(--white);cursor:pointer;" onclick="toggleUiSelect()">
+                    <span id="uiTypeBadge" style="font-size:11px;font-weight:500;color:var(--green);background:var(--green-light);padding:2px 9px;border-radius:99px;display:flex;align-items:center;gap:3px;white-space:nowrap;flex-shrink:0;">✨ AI 추천</span>
+                    <span id="uiTypeLabel" style="font-size:12px;color:var(--text-tertiary);flex:1;">자동 선택</span>
+                    <span style="font-size:11px;color:var(--border-strong);margin:0 2px;">|</span>
+                    <div style="width:24px;height:24px;border:0.5px solid var(--border-strong);border-radius:var(--r-sm);background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--text-secondary);flex-shrink:0;"><i class="ti ti-chevron-down" aria-hidden="true"></i></div>
+                  </div>
+                  <select id="uiType" onchange="onUiTypeChange()" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;z-index:2;">
+                    <option value="AI 추천">AI 추천 (자동)</option>
+                    <option value="토스트 팝업">토스트 팝업</option>
+                    <option value="인풋필드 오류">인풋필드 오류</option>
+                    <option value="얼럿 레이어">얼럿 레이어</option>
+                    <option value="얼럿 레이어 (액션 포함)">얼럿 레이어 (액션 포함)</option>
+                    <option value="컨펌 레이어">컨펌 레이어</option>
+                    <option value="화면 안내 문구">화면 안내 문구</option>
+                    <option value="기능별 설명">기능별 설명</option>
+                    <option value="빈 화면 (Empty State)">빈 화면</option>
+                  </select>
+                </div>
                 <div id="uiHint" class="ui-hint"></div>
               </div>
-              <div class="form-group required-field">
-                <label>
-                  <span style="font-size:15px;color:var(--brand-bright);line-height:1;">•</span>
-                  문구 유형
-                  <span class="req-label">필수</span>
-                </label>
-                <select id="msgType">
-                  <option value="">선택해 주세요</option>
-                  <option value="오류·실패">오류 · 실패</option>
-                  <option value="성공·완료">성공 · 완료</option>
-                  <option value="경고·확인">경고 · 확인</option>
-                  <option value="안내·설명">안내 · 설명</option>
-                  <option value="기능 소개">기능 소개</option>
-                  <option value="연동·설정">연동 · 설정</option>
-                </select>
+
+              <!-- 문구 유형 - AI 추천 기본값 -->
+              <div class="form-group">
+                <label style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:500;color:var(--text-secondary);margin-bottom:7px;">문구 유형</label>
+                <div style="position:relative;">
+                  <div id="msgTypeDisplay" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border:0.5px solid var(--border);border-radius:var(--r-md);background:var(--white);cursor:pointer;" onclick="toggleMsgSelect()">
+                    <span id="msgTypeBadge" style="font-size:11px;font-weight:500;color:var(--green);background:var(--green-light);padding:2px 9px;border-radius:99px;display:flex;align-items:center;gap:3px;white-space:nowrap;flex-shrink:0;">✨ AI 추천</span>
+                    <span id="msgTypeLabel" style="font-size:12px;color:var(--text-tertiary);flex:1;">자동 선택</span>
+                    <span style="font-size:11px;color:var(--border-strong);margin:0 2px;">|</span>
+                    <div style="width:24px;height:24px;border:0.5px solid var(--border-strong);border-radius:var(--r-sm);background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--text-secondary);flex-shrink:0;"><i class="ti ti-chevron-down" aria-hidden="true"></i></div>
+                  </div>
+                  <select id="msgType" onchange="onMsgTypeChange()" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;z-index:2;">
+                    <option value="AI 추천">AI 추천 (자동)</option>
+                    <option value="오류·실패">오류 · 실패</option>
+                    <option value="성공·완료">성공 · 완료</option>
+                    <option value="경고·확인">경고 · 확인</option>
+                    <option value="안내·설명">안내 · 설명</option>
+                    <option value="기능 소개">기능 소개</option>
+                    <option value="연동·설정">연동 · 설정</option>
+                  </select>
+                </div>
               </div>
             </div>
 
             <!-- 선택 항목 -->
-            <div style="display:flex;align-items:center;gap:8px;margin:20px 0 14px;">
-              <span style="font-size:11px;font-weight:700;color:var(--text-tertiary);letter-spacing:0.06em;text-transform:uppercase;">선택 항목</span>
+            <div style="font-size:11px;font-weight:500;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.06em;display:flex;align-items:center;gap:8px;margin:20px 0 14px;">
+              선택 입력
               <div style="flex:1;height:1px;background:var(--border);"></div>
             </div>
 
@@ -592,7 +605,20 @@ const UI_HINTS = {
 
 function onUiTypeChange() {
   const val = document.getElementById('uiType').value;
+  const label = document.getElementById('uiTypeLabel');
+  const badge = document.getElementById('uiTypeBadge');
   const hint = document.getElementById('uiHint');
+
+  if (val === 'AI 추천' || !val) {
+    badge.style.display = 'flex';
+    label.textContent = '자동 선택';
+    label.style.color = 'var(--text-tertiary)';
+  } else {
+    badge.style.display = 'none';
+    label.textContent = val;
+    label.style.color = 'var(--text-primary)';
+  }
+
   if (val && UI_HINTS[val]) {
     const h = UI_HINTS[val];
     hint.className = `ui-hint show ${h.cls}`;
@@ -601,6 +627,29 @@ function onUiTypeChange() {
     hint.className = 'ui-hint';
     hint.innerHTML = '';
   }
+}
+
+function onMsgTypeChange() {
+  const val = document.getElementById('msgType').value;
+  const label = document.getElementById('msgTypeLabel');
+  const badge = document.getElementById('msgTypeBadge');
+
+  if (val === 'AI 추천' || !val) {
+    badge.style.display = 'flex';
+    label.textContent = '자동 선택';
+    label.style.color = 'var(--text-tertiary)';
+  } else {
+    badge.style.display = 'none';
+    label.textContent = val;
+    label.style.color = 'var(--text-primary)';
+  }
+}
+
+function toggleUiSelect() {
+  document.getElementById('uiType').focus();
+}
+function toggleMsgSelect() {
+  document.getElementById('msgType').focus();
 }
 
 // ── STATE ─────────────────────────────────────
@@ -680,8 +729,11 @@ async function generate() {
   const extra   = document.getElementById('extraCondition').value.trim();
 
   if (!purpose) return toast('문구 목적을 입력해 주세요.');
-  if (!uiType)  return toast('UI 유형을 선택해 주세요.');
-  if (!msgType) return toast('문구 유형을 선택해 주세요.');
+  // UI유형/문구유형 미선택 시 AI 추천으로 자동 처리
+  if (!uiType || uiType === 'AI 추천') document.getElementById('uiType').value = 'AI 추천';
+  if (!msgType || msgType === 'AI 추천') document.getElementById('msgType').value = 'AI 추천';
+  const finalUiType = document.getElementById('uiType').value;
+  const finalMsgType = document.getElementById('msgType').value;
   if (!window._useServerKey && !localStorage.getItem('daou_ux_api_key')) return toast('먼저 Claude API Key를 입력해 주세요.');
 
   adoptedIdx = -1; chatHistory = []; chatIdx = -1;
@@ -925,10 +977,19 @@ function resetForm() {
   ['purpose','refMsg','targetSubject','extraCondition'].forEach(id => {
     const el = document.getElementById(id); if(el) el.value='';
   });
-  document.getElementById('uiType').value = '';
-  document.getElementById('msgType').value = '';
+  document.getElementById('uiType').value = 'AI 추천';
+  document.getElementById('msgType').value = 'AI 추천';
   document.getElementById('uiHint').className = 'ui-hint';
   document.getElementById('uiHint').innerHTML = '';
+  // 디스플레이도 초기화
+  const uiLbl = document.getElementById('uiTypeLabel');
+  const uiBdg = document.getElementById('uiTypeBadge');
+  const msgLbl = document.getElementById('msgTypeLabel');
+  const msgBdg = document.getElementById('msgTypeBadge');
+  if (uiLbl) { uiLbl.textContent = '자동 선택'; uiLbl.style.color = 'var(--text-tertiary)'; }
+  if (uiBdg) uiBdg.style.display = 'flex';
+  if (msgLbl) { msgLbl.textContent = '자동 선택'; msgLbl.style.color = 'var(--text-tertiary)'; }
+  if (msgBdg) msgBdg.style.display = 'flex';
   document.getElementById('loadingState').style.display = 'none';
   document.getElementById('resultsState').style.display = 'none';
   document.getElementById('commonChat').style.display = 'none';
